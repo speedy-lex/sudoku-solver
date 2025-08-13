@@ -56,15 +56,24 @@ fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
     }
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
+    let mut min = 9;
+    let mut min_x = usize::MAX;
+    let mut min_y = usize::MAX;
     for y in 0..9 {
         for x in 0..9 {
             let n = map.squares[y][x];
-            if n.bits() != 0 {
-                return (x, y);
+            if n.bits() == 0 {
+                continue;
+            }
+            let count_ones = n.bits().count_ones();
+            if count_ones < min {
+                min_x = x;
+                min_y = y;
+                min = count_ones;
             }
         }
     }
-    (usize::MAX, usize::MAX)
+    (min_x, min_y)
 }
 fn solve_branch(b: Board, map: Map) -> (Board, bool) {
     let (x, y) = find_nonempty(&map);
