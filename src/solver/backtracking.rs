@@ -41,19 +41,16 @@ pub fn solve(b: Board) -> Board {
     solve_map(b, map).0
 }
 fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
-    'outer: loop {
-        for y in 0..9 {
-            for x in 0..9 {
-                let n = map.squares[y][x];
-                if n.bits().count_ones() == 1 {
-                    b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                    map.erase(n, x, y);
-                    continue 'outer;
-                }
+    for y in 0..9 {
+        for x in 0..9 {
+            let n = map.squares[y][x];
+            if n.bits().count_ones() == 1 {
+                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                map.erase(n, x, y);
             }
         }
-        return solve_branch(b, map);
     }
+    solve_branch(b, map)
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
     let mut min = 9;
