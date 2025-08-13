@@ -10,5 +10,9 @@ bitflags = "2.9.1"
 divan = "0.1.21"
 
 [[bench]]
-name = "solve"
+name = "board"
+harness = false
+
+[[bench]]
+name = "backtracking"
 harness = false
