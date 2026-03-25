@@ -40,20 +40,19 @@ pub fn solve(b: Board) -> Board {
     let map = Map::generate(&b);
     solve_map(b, map).0
 }
-fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
+fn solve_map(mut b: Board, map: Map) -> (Board, bool) {
     for y in 0..9 {
         for x in 0..9 {
             let n = map.squares[y][x];
             if n.bits().count_ones() == 1 {
                 b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                map.erase(n, x, y);
             }
         }
     }
-    solve_branch(b, map)
+    solve_branch(b, Map::generate(&b))
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
-    let mut min = 9;
+    let mut min = u32::MAX;
     let mut min_x = usize::MAX;
     let mut min_y = usize::MAX;
     for y in 0..9 {

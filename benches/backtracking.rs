@@ -19,6 +19,10 @@ fn solve_arto_inkala() -> Board {
     backtracking::solve(Board::from_str("8----------36------7--9-2---5---7-------457-----1---3---1----68--85---1--9----4--").unwrap())
 }
 #[divan::bench]
+fn solve_empty() -> Board {
+    backtracking::solve(Board::empty())
+}
+#[divan::bench]
 fn generate_map() -> Map {
     let b = Board::from_str("-8------9--12--3-87--------4------7-2-8--5------79-8----95-4----149-6------18--5-").unwrap();
     Map::generate(&b)
