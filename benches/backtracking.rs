@@ -27,6 +27,10 @@ fn solve_easy() -> Board {
     backtracking::solve(Board::from_str("--95---------39--627-64-----2-975---1-746---23-61827----5-9462---4821-3---27-61--").unwrap())
 }
 #[divan::bench]
+fn count_solutions() -> usize {
+    backtracking::count_solutions(Board::from_str("--2----87--9---1---3--5-2-9-48---91----5-6-2--2--8-3-5-8--72---3618-5-9-2746-1853").unwrap())
+}
+#[divan::bench]
 fn generate_map() -> Map {
     let b = Board::from_str("-8------9--12--3-87--------4------7-2-8--5------79-8----95-4----149-6------18--5-").unwrap();
     Map::generate(&b)

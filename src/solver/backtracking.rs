@@ -42,6 +42,35 @@ impl Map {
     }
 }
 
+pub fn count_solutions(b: Board) -> usize {
+    count_solutions_map(b, Map::generate(&b))
+}
+fn count_solutions_map(mut b: Board, map: Map) -> usize {
+    for y in 0..9 {
+        for x in 0..9 {
+            let n = map.get(x, y);
+            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
+                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+            }
+        }
+    }
+    let map = Map::generate(&b);
+    let (x, y) = find_nonempty(&map);
+    if x == usize::MAX {
+        return b.is_filled() as usize;
+    }
+    let mut solutions = 0;
+    let n = map.get(x, y);
+    for square in n.iter() {
+        let mut cpy = b;
+        let mut map_cpy = map;
+        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
+        map_cpy.erase(square, x, y);
+        solutions += count_solutions_map(cpy, map_cpy);
+    }
+    solutions
+}
+
 pub fn solve(b: Board) -> Board {
     let map = Map::generate(&b);
     solve_map(b, map).0
@@ -55,7 +84,23 @@ fn solve_map(mut b: Board, map: Map) -> (Board, bool) {
             }
         }
     }
-    solve_branch(b, Map::generate(&b))
+    let map = Map::generate(&b);
+    let (x, y) = find_nonempty(&map);
+    if x == usize::MAX {
+        return (b, b.is_filled());
+    }
+    let n = map.get(x, y);
+    for square in n.iter() {
+        let mut cpy = b;
+        let mut map_cpy = map;
+        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
+        map_cpy.erase(square, x, y);
+        let new = solve_map(cpy, map_cpy);
+        if new.1 {
+            return new;
+        }
+    }
+    (b, false)
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
     let mut min = u32::MAX;
@@ -76,22 +121,4 @@ fn find_nonempty(map: &Map) -> (usize, usize) {
         }
     }
     (min_x, min_y)
-}
-fn solve_branch(b: Board, map: Map) -> (Board, bool) {
-    let (x, y) = find_nonempty(&map);
-    if x == usize::MAX {
-        return (b, b.is_filled());
-    }
-    let n = map.get(x, y);
-    for square in n.iter() {
-        let mut cpy = b;
-        let mut map_cpy = map;
-        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
-        map_cpy.erase(square, x, y);
-        let new = solve_map(cpy, map_cpy);
-        if new.1 {
-            return new;
-        }
-    }
-    (b, false)
 }
