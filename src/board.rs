@@ -134,4 +134,7 @@ impl Square {
     pub fn from_number(x: u8) -> Self {
         Self::from_bits_retain(1 << (x - 1))
     }
+    pub fn from_x(x: usize) -> Self {
+        Self::from_bits_retain(1 << x)
+    }
 }

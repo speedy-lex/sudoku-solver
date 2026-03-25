@@ -3,11 +3,14 @@ use crate::board::{Board, Square};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
-    pub squares: [[Square; 9]; 9],
+    pub big_squares: [Square; 9],
+    pub cols: [Square; 9],
+    pub rows: [Square; 9],
+    pub filled: [Square; 9],
 }
 impl Map {
     pub fn generate(b: &Board) -> Self {
-        let mut m = Self { squares: [[Square::all(); 9]; 9]};
+        let mut m = Self { big_squares: [Square::all(); 9], cols: [Square::all(); 9], rows: [Square::all(); 9], filled: [Square::empty(); 9] };
         for y in 0..9 {
             for x in 0..9 {
                 if b.squares[y][x] != 0 {
@@ -20,18 +23,21 @@ impl Map {
     pub fn erase(&mut self, square: Square, x: usize, y: usize) {
         let square_x = x / 3;
         let square_y = y / 3;
+        let i = square_y * 3 + square_x;
 
-        self.squares[y][x] = Square::empty();
-        for i in self.squares[y].iter_mut() {
-            i.remove(square);
-        }
-        for i in self.squares.as_flattened_mut().iter_mut().skip(x).step_by(9) {
-            i.remove(square);
-        }
-        for y in (square_y * 3)..(square_y * 3 + 3) {
-            for x in (square_x * 3)..(square_x * 3 + 3) {
-                self.squares[y][x].remove(square);
-            }
+        self.big_squares[i].remove(square);
+        self.cols[x].remove(square);
+        self.rows[y].remove(square);
+        self.filled[y] |= Square::from_x(x);
+    }
+    pub fn get(&self, x: usize, y: usize) -> Square {
+        let square_x = x / 3;
+        let square_y = y / 3;
+        let i = square_y * 3 + square_x;
+        if !self.filled[y].contains(Square::from_x(x)) {
+            self.big_squares[i].intersection(self.cols[x]).intersection(self.rows[y])
+        } else {
+            Square::empty()
         }
     }
 }
@@ -43,8 +49,8 @@ pub fn solve(b: Board) -> Board {
 fn solve_map(mut b: Board, map: Map) -> (Board, bool) {
     for y in 0..9 {
         for x in 0..9 {
-            let n = map.squares[y][x];
-            if n.bits().count_ones() == 1 {
+            let n = map.get(x, y);
+            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
                 b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
             }
         }
@@ -57,7 +63,7 @@ fn find_nonempty(map: &Map) -> (usize, usize) {
     let mut min_y = usize::MAX;
     for y in 0..9 {
         for x in 0..9 {
-            let n = map.squares[y][x];
+            let n = map.get(x, y);
             if n.bits() == 0 {
                 continue;
             }
@@ -72,11 +78,14 @@ fn find_nonempty(map: &Map) -> (usize, usize) {
     (min_x, min_y)
 }
 fn solve_branch(b: Board, map: Map) -> (Board, bool) {
+    if b.is_filled() {
+        return (b, true);
+    }
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return (b, b.is_filled());
     }
-    let n = map.squares[y][x];
+    let n = map.get(x, y);
     for square in n.iter() {
         let mut cpy = b;
         let mut map_cpy = map;
