@@ -23,6 +23,10 @@ fn solve_empty() -> Board {
     backtracking::solve(Board::empty())
 }
 #[divan::bench]
+fn solve_easy() -> Board {
+    backtracking::solve(Board::from_str("--95---------39--627-64-----2-975---1-746---23-61827----5-9462---4821-3---27-61--").unwrap())
+}
+#[divan::bench]
 fn generate_map() -> Map {
     let b = Board::from_str("-8------9--12--3-87--------4------7-2-8--5------79-8----95-4----149-6------18--5-").unwrap();
     Map::generate(&b)

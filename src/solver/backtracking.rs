@@ -78,9 +78,6 @@ fn find_nonempty(map: &Map) -> (usize, usize) {
     (min_x, min_y)
 }
 fn solve_branch(b: Board, map: Map) -> (Board, bool) {
-    if b.is_filled() {
-        return (b, true);
-    }
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return (b, b.is_filled());
