@@ -1,8 +1,8 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::{Debug, Display}, str::FromStr};
 
 use bitflags::bitflags;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Board {
     pub squares: [[u8; 9]; 9]
 }
@@ -58,7 +58,7 @@ impl Board {
                 7 => '7',
                 8 => '8',
                 9 => '9',
-                _ => '-',
+                _ => '.',
             });
         }
         str
@@ -82,6 +82,7 @@ impl FromStr for Board {
                 '8' => 8,
                 '9' => 9,
                 '-' => 0,
+                '.' => 0,
                 _ => continue,
             };
             board.squares.as_flattened_mut()[i] = x;
@@ -113,6 +114,11 @@ impl Display for Board {
         }
         write!(f, "+---+---+---+")?;
         Ok(())
+    }
+}
+impl Debug for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.dump())
     }
 }
 

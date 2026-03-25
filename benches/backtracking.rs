@@ -19,6 +19,14 @@ fn solve_arto_inkala() -> Board {
     backtracking::solve(Board::from_str("8----------36------7--9-2---5---7-------457-----1---3---1----68--85---1--9----4--").unwrap())
 }
 #[divan::bench]
+fn solve_unsolvable_49() -> Board {
+    backtracking::solve(Board::from_str("..28......3..6...71......4.6...9.....5.6....9....57.6....3..1...7...6..84......2.").unwrap())
+}
+#[divan::bench]
+fn solve_unsolvable_28() -> Board {
+    backtracking::solve(Board::from_str("6....894.9....61...7..4....2..61..........2...89..2.......6...5.......3.8....16..").unwrap())
+}
+#[divan::bench]
 fn solve_empty() -> Board {
     backtracking::solve(Board::empty())
 }

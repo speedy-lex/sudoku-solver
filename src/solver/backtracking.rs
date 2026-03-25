@@ -1,3 +1,5 @@
+use rand::{Rng, seq::SliceRandom};
+
 use crate::board::{Board, Square};
 
 
@@ -8,9 +10,14 @@ pub struct Map {
     pub rows: [Square; 9],
     pub filled: [Square; 9],
 }
+impl Default for Map {
+    fn default() -> Self {
+        Self { big_squares: [Square::all(); 9], cols: [Square::all(); 9], rows: [Square::all(); 9], filled: [Square::empty(); 9] }
+    }
+}
 impl Map {
     pub fn generate(b: &Board) -> Self {
-        let mut m = Self { big_squares: [Square::all(); 9], cols: [Square::all(); 9], rows: [Square::all(); 9], filled: [Square::empty(); 9] };
+        let mut m = Self::default();
         for y in 0..9 {
             for x in 0..9 {
                 if b.squares[y][x] != 0 {
@@ -45,16 +52,16 @@ impl Map {
 pub fn count_solutions(b: Board) -> usize {
     count_solutions_map(b, Map::generate(&b))
 }
-fn count_solutions_map(mut b: Board, map: Map) -> usize {
+fn count_solutions_map(mut b: Board, mut map: Map) -> usize {
     for y in 0..9 {
         for x in 0..9 {
             let n = map.get(x, y);
             if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
                 b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                map.erase(n, x, y);
             }
         }
     }
-    let map = Map::generate(&b);
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return b.is_filled() as usize;
@@ -75,16 +82,16 @@ pub fn solve(b: Board) -> Board {
     let map = Map::generate(&b);
     solve_map(b, map).0
 }
-fn solve_map(mut b: Board, map: Map) -> (Board, bool) {
+fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
     for y in 0..9 {
         for x in 0..9 {
             let n = map.get(x, y);
             if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
                 b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                map.erase(n, x, y);
             }
         }
     }
-    let map = Map::generate(&b);
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return (b, b.is_filled());
@@ -96,6 +103,40 @@ fn solve_map(mut b: Board, map: Map) -> (Board, bool) {
         cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
         map_cpy.erase(square, x, y);
         let new = solve_map(cpy, map_cpy);
+        if new.1 {
+            return new;
+        }
+    }
+    (b, false)
+}
+pub(crate) fn solve_map_random(mut b: Board, mut map: Map, rng: &mut impl Rng) -> (Board, bool) {
+    for y in 0..9 {
+        for x in 0..9 {
+            let n = map.get(x, y);
+            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
+                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                map.erase(n, x, y);
+            }
+        }
+    }
+    let (x, y) = find_nonempty(&map);
+    if x == usize::MAX {
+        return (b, b.is_filled());
+    }
+    let n = map.get(x, y);
+    let mut arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    arr.shuffle(rng);
+
+    for i in arr {
+        let square = Square::from_number(i);
+        if !n.contains(square) {
+            continue;
+        }
+        let mut cpy = b;
+        let mut map_cpy = map;
+        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
+        map_cpy.erase(square, x, y);
+        let new = solve_map_random(cpy, map_cpy, rng);
         if new.1 {
             return new;
         }
