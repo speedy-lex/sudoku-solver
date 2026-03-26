@@ -1,6 +1,4 @@
-use sudoku_solver::{Board, generator, solver};
-
-use std::str::FromStr;
+use sudoku_solver::{generator, solver};
 
 fn main() {
     let b = generator::generate();

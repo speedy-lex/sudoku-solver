@@ -1,8 +1,11 @@
 use std::collections::HashSet;
 
-use rand::seq::{IteratorRandom};
+use rand::seq::IteratorRandom;
 
-use crate::{Board, solver::backtracking::{Map, count_solutions, solve_map_random}};
+use crate::{
+    Board,
+    solver::backtracking::{Map, count_solutions, solve_map_random},
+};
 
 pub fn generate() -> Board {
     let mut rng: rand::rngs::SmallRng = rand::make_rng();

@@ -1,14 +1,19 @@
-use std::{fmt::{Debug, Display}, str::FromStr};
+use std::{
+    fmt::{Debug, Display},
+    str::FromStr,
+};
 
 use bitflags::bitflags;
 
 #[derive(Clone, Copy)]
 pub struct Board {
-    pub squares: [[u8; 9]; 9]
+    pub squares: [[u8; 9]; 9],
 }
 impl Board {
     pub fn empty() -> Self {
-        Self { squares: [[0; 9]; 9] }
+        Self {
+            squares: [[0; 9]; 9],
+        }
     }
     pub fn is_filled(&self) -> bool {
         !self.squares.iter().flat_map(|x| x.iter()).any(|x| *x == 0)
@@ -41,9 +46,9 @@ impl Board {
                 }
             }
         }
-        rows.into_iter().all(|x| x.is_all()) &&
-        cols.into_iter().all(|x| x.is_all()) &&
-        squares.into_iter().all(|x| x.is_all())
+        rows.into_iter().all(|x| x.is_all())
+            && cols.into_iter().all(|x| x.is_all())
+            && squares.into_iter().all(|x| x.is_all())
     }
     pub fn dump(&self) -> String {
         let mut str = String::with_capacity(81);

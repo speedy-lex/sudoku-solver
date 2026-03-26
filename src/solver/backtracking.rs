@@ -2,7 +2,6 @@ use rand::{Rng, seq::SliceRandom};
 
 use crate::board::{Board, Square};
 
-
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
     pub big_squares: [Square; 9],
@@ -12,7 +11,12 @@ pub struct Map {
 }
 impl Default for Map {
     fn default() -> Self {
-        Self { big_squares: [Square::all(); 9], cols: [Square::all(); 9], rows: [Square::all(); 9], filled: [Square::empty(); 9] }
+        Self {
+            big_squares: [Square::all(); 9],
+            cols: [Square::all(); 9],
+            rows: [Square::all(); 9],
+            filled: [Square::empty(); 9],
+        }
     }
 }
 impl Map {
@@ -42,7 +46,9 @@ impl Map {
         let square_y = y / 3;
         let i = square_y * 3 + square_x;
         if !self.filled[y].contains(Square::from_x(x)) {
-            self.big_squares[i].intersection(self.cols[x]).intersection(self.rows[y])
+            self.big_squares[i]
+                .intersection(self.cols[x])
+                .intersection(self.rows[y])
         } else {
             Square::empty()
         }
