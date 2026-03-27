@@ -1,8 +1,11 @@
-use sudoku_solver::{generator, solver};
+use std::{fs, str::FromStr};
+
+use sudoku_solver::{Board, solver::backtracking};
 
 fn main() {
-    let b = generator::generate();
-    println!("{b}\n{b:?}");
-    let b = solver::backtracking::solve(b);
-    println!("{b}\n{b:?}");
+    let sudokus = String::from_utf8(fs::read("4096sudokus").unwrap()).unwrap();
+    for sudoku in sudokus.lines() {
+        let b = Board::from_str(sudoku).unwrap();
+        println!("{}  {}/{}", sudoku, backtracking::count_branches_to_sol(b), backtracking::count_branches(b));
+    }
 }

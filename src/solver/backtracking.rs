@@ -59,15 +59,7 @@ pub fn count_solutions(b: Board) -> usize {
     count_solutions_map(b, Map::generate(&b))
 }
 fn count_solutions_map(mut b: Board, mut map: Map) -> usize {
-    for y in 0..9 {
-        for x in 0..9 {
-            let n = map.get(x, y);
-            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
-                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                map.erase(n, x, y);
-            }
-        }
-    }
+    fill_in_singles(&mut b, &mut map);
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return b.is_filled() as usize;
@@ -84,20 +76,57 @@ fn count_solutions_map(mut b: Board, mut map: Map) -> usize {
     solutions
 }
 
+pub fn count_branches(b: Board) -> usize {
+    count_branches_map(b, Map::generate(&b))
+}
+fn count_branches_map(mut b: Board, mut map: Map) -> usize {
+    fill_in_singles(&mut b, &mut map);
+    let (x, y) = find_nonempty(&map);
+    if x == usize::MAX {
+        return 1;
+    }
+    let mut branches = 0;
+    let n = map.get(x, y);
+    for square in n.iter() {
+        let mut cpy = b;
+        let mut map_cpy = map;
+        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
+        map_cpy.erase(square, x, y);
+        branches += count_branches_map(cpy, map_cpy);
+    }
+    branches
+}
+pub fn count_branches_to_sol(b: Board) -> usize {
+    count_branches_to_sol_map(b, Map::generate(&b)).0
+}
+fn count_branches_to_sol_map(mut b: Board, mut map: Map) -> (usize, bool) {
+    fill_in_singles(&mut b, &mut map);
+    let (x, y) = find_nonempty(&map);
+    if x == usize::MAX {
+        return (1, b.is_filled());
+    }
+    let mut branches = 0;
+    let n = map.get(x, y);
+    for square in n.iter() {
+        let mut cpy = b;
+        let mut map_cpy = map;
+        cpy.squares[y][x] = square.bits().trailing_zeros() as u8 + 1;
+        map_cpy.erase(square, x, y);
+        let (branch, solved) = count_branches_to_sol_map(cpy, map_cpy);
+        branches += branch;
+        if solved {
+            return (branches, true);
+        }
+    }
+    (branches, false)
+}
+
 pub fn solve(b: Board) -> Board {
     let map = Map::generate(&b);
     solve_map(b, map).0
 }
 fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
-    for y in 0..9 {
-        for x in 0..9 {
-            let n = map.get(x, y);
-            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
-                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                map.erase(n, x, y);
-            }
-        }
-    }
+    fill_in_singles(&mut b, &mut map);
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return (b, b.is_filled());
@@ -115,16 +144,8 @@ fn solve_map(mut b: Board, mut map: Map) -> (Board, bool) {
     }
     (b, false)
 }
-pub(crate) fn solve_map_random(mut b: Board, mut map: Map, rng: &mut impl Rng) -> (Board, bool) {
-    for y in 0..9 {
-        for x in 0..9 {
-            let n = map.get(x, y);
-            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
-                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                map.erase(n, x, y);
-            }
-        }
-    }
+pub fn solve_map_random(mut b: Board, mut map: Map, rng: &mut impl Rng) -> (Board, bool) {
+    fill_in_singles(&mut b, &mut map);
     let (x, y) = find_nonempty(&map);
     if x == usize::MAX {
         return (b, b.is_filled());
@@ -148,6 +169,53 @@ pub(crate) fn solve_map_random(mut b: Board, mut map: Map, rng: &mut impl Rng) -
         }
     }
     (b, false)
+}
+fn fill_in_singles(b: &mut Board, map: &mut Map) {
+    for y in 0..9 {
+        for x in 0..9 {
+            let n = map.get(x, y);
+            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
+                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                map.erase(n, x, y);
+            }
+        }
+    }
+    let mut counts;
+    let mut pos = [0; 9];
+    for y in 0..9 {
+        counts = [0; 9];
+        for x in 0..9 {
+            let n = map.get(x, y);
+            for s in n.iter() {
+                let num = s.bits().trailing_zeros() as usize;
+                counts[num] += 1;
+                pos[num] = x;
+            }
+        }
+        for num in 0..9 {
+            if counts[num] == 1 {
+                b.squares[y][pos[num]] = num as u8 + 1;
+                map.erase(Square::from_x(num), pos[num], y);
+            }
+        }
+    }
+    for x in 0..9 {
+        counts = [0; 9];
+        for y in 0..9 {
+            let n = map.get(x, y);
+            for s in n.iter() {
+                let num = s.bits().trailing_zeros() as usize;
+                counts[num] += 1;
+                pos[num] = y;
+            }
+        }
+        for num in 0..9 {
+            if counts[num] == 1 {
+                b.squares[pos[num]][x] = num as u8 + 1;
+                map.erase(Square::from_x(num), x, pos[num]);
+            }
+        }
+    }
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
     let mut min = u32::MAX;

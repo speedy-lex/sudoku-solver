@@ -10,7 +10,6 @@ use crate::{
 pub fn generate() -> Board {
     let mut rng: rand::rngs::SmallRng = rand::make_rng();
     let mut b = solve_map_random(Board::empty(), Map::default(), &mut rng).0;
-    println!("got filled");
     let mut coords = HashSet::with_capacity(81);
     for x in 0..9 {
         for y in 0..9 {
@@ -38,6 +37,8 @@ pub fn generate() -> Board {
 #[test]
 fn test_solve_map_random() {
     let mut rng: rand::rngs::SmallRng = rand::make_rng();
-    let b = solve_map_random(Board::empty(), Map::default(), &mut rng).0;
-    assert!(b.is_solved());
+    for _ in 0..128 {
+        let b = solve_map_random(Board::empty(), Map::default(), &mut rng).0;
+        assert!(b.is_solved());
+    }
 }

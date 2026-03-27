@@ -84,3 +84,8 @@ fn generate_map() -> Map {
     .unwrap();
     Map::generate(&b)
 }
+#[divan::bench]
+fn generate_random_board() -> Board {
+    let mut rng: rand::rngs::SmallRng = rand::make_rng();
+    backtracking::solve_map_random(Board::empty(), Map::default(), &mut rng).0
+}
