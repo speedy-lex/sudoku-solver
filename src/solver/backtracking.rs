@@ -171,50 +171,65 @@ pub fn solve_map_random(mut b: Board, mut map: Map, rng: &mut impl Rng) -> (Boar
     (b, false)
 }
 fn fill_in_singles(b: &mut Board, map: &mut Map) {
-    for y in 0..9 {
-        for x in 0..9 {
-            let n = map.get(x, y);
-            if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
-                b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
-                map.erase(n, x, y);
-            }
-        }
-    }
-    let mut counts;
-    let mut pos = [0; 9];
-    for y in 0..9 {
-        counts = [0; 9];
-        for x in 0..9 {
-            let n = map.get(x, y);
-            for s in n.iter() {
-                let num = s.bits().trailing_zeros() as usize;
-                counts[num] += 1;
-                pos[num] = x;
-            }
-        }
-        for num in 0..9 {
-            if counts[num] == 1 {
-                b.squares[y][pos[num]] = num as u8 + 1;
-                map.erase(Square::from_x(num), pos[num], y);
-            }
-        }
-    }
-    for x in 0..9 {
-        counts = [0; 9];
+    loop {
+        let mut changed = false;
         for y in 0..9 {
-            let n = map.get(x, y);
-            for s in n.iter() {
-                let num = s.bits().trailing_zeros() as usize;
-                counts[num] += 1;
-                pos[num] = y;
+            for x in 0..9 {
+                let n = map.get(x, y);
+                if n.bits().count_ones() == 1 && b.squares[y][x] == 0 {
+                    b.squares[y][x] = n.bits().trailing_zeros() as u8 + 1;
+                    map.erase(n, x, y);
+                    changed = true;
+                }
             }
         }
-        for num in 0..9 {
-            if counts[num] == 1 {
-                b.squares[pos[num]][x] = num as u8 + 1;
-                map.erase(Square::from_x(num), x, pos[num]);
+        if changed {
+            continue;
+        }
+        let mut pos = [0; 9];
+        for y in 0..9 {
+            let mut counts = [0; 9];
+            for x in 0..9 {
+                let n = map.get(x, y);
+                for s in n.iter() {
+                    let num = s.bits().trailing_zeros() as usize;
+                    counts[num] += 1;
+                    pos[num] = x;
+                }
+            }
+            for num in 0..9 {
+                if counts[num] == 1 {
+                    b.squares[y][pos[num]] = num as u8 + 1;
+                    map.erase(Square::from_x(num), pos[num], y);
+                    changed = true;
+                }
             }
         }
+        if changed {
+            continue;
+        }
+        for x in 0..9 {
+            let mut counts = [0; 9];
+            for y in 0..9 {
+                let n = map.get(x, y);
+                for s in n.iter() {
+                    let num = s.bits().trailing_zeros() as usize;
+                    counts[num] += 1;
+                    pos[num] = y;
+                }
+            }
+            for num in 0..9 {
+                if counts[num] == 1 {
+                    b.squares[pos[num]][x] = num as u8 + 1;
+                    map.erase(Square::from_x(num), x, pos[num]);
+                    changed = true;
+                }
+            }
+        }
+        if changed {
+            continue;
+        }
+        return;
     }
 }
 fn find_nonempty(map: &Map) -> (usize, usize) {
